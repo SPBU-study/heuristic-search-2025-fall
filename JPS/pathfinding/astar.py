@@ -6,18 +6,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from .grid import GridMap
 from .heuristics import octile_distance, step_cost
-
-
-def _reconstruct_path(
-    parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]], goal: Tuple[int, int]
-) -> List[Tuple[int, int]]:
-    path: List[Tuple[int, int]] = []
-    node: Optional[Tuple[int, int]] = goal
-    while node is not None:
-        path.append(node)
-        node = parent_map.get(node)
-    path.reverse()
-    return path
+from .path_utils import reconstruct_path
 
 
 def astar_search(
@@ -45,7 +34,7 @@ def astar_search(
         expanded += 1
 
         if node == goal:
-            return _reconstruct_path(parent_map, goal), g_current, expanded
+            return reconstruct_path(parent_map, goal), g_current, expanded
 
         for nx, ny in grid.neighbors8(x, y):
             neighbor = (nx, ny)

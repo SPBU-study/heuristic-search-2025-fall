@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from .heuristics import DIAGONAL_DISTANCE, weighted_octile_distance
 from .jps import DIRECTIONS_8
+from .path_utils import reconstruct_path
 from .weighted_grid import WeightedGridMap
 
 TIE_EPS = 1e-9
@@ -193,20 +194,6 @@ def identify_successors(
             successors.append((jx, jy))
 
     return successors
-
-
-def _reconstruct_path(
-    parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]], goal: Tuple[int, int]
-) -> List[Tuple[int, int]]:
-    path: List[Tuple[int, int]] = []
-    node: Optional[Tuple[int, int]] = goal
-    while node is not None:
-        path.append(node)
-        node = parent_map.get(node)
-    path.reverse()
-    return path
-
-
 def jump_point_search_weighted(
     grid: WeightedGridMap, start: Tuple[int, int], goal: Tuple[int, int]
 ) -> Tuple[List[Tuple[int, int]], float, int]:
@@ -237,7 +224,7 @@ def jump_point_search_weighted(
         expanded += 1
 
         if node == goal:
-            return _reconstruct_path(parent_map, goal), g_current, expanded
+            return reconstruct_path(parent_map, goal), g_current, expanded
 
         prune_parent = dir_parent.get(node)
         successors = identify_successors(

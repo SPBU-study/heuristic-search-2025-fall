@@ -10,7 +10,7 @@ from .astarw import astarw_search
 from .grid import GridMap, ScenarioProblem, load_scenarios
 from .jps import jump_point_search
 from .jpsw import jump_point_search_weighted
-from .visualize import expand_path, render_grid_path
+from .path_utils import expand_path
 from .weighted_grid import WeightedGridMap
 
 
@@ -144,6 +144,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     jump_points: Optional[List[Tuple[int, int]]] = path if (path and algo_name in {"JPS", "JPSW"}) else None
 
     if args.visualize:
+        from .visualize import render_grid_path
+
         if not path_for_plot:
             print("No path found to visualize.")
         else:
