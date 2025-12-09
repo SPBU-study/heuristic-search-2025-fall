@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tqdm import tqdm, trange
 import math
 import numpy as np
 import pandas as pd
@@ -44,9 +45,10 @@ class JPSRandomTests(unittest.TestCase):
         random.seed(0)
         elapsed_times = defaultdict(list)
         expanded_nodes = defaultdict(list)
-        for prob in (0.1, 0.25, 0.5, 0.75):
-            for n in (3, 5, 10, 20, 30):
-                for _ in range(100):
+        num_samples = 30
+        for prob in tqdm((0.1, 0.25, 0.5, 0.75), desc="Probs", leave=False):
+            for n in tqdm((3, 5, 10, 20, 30, 100, 500), desc="n", leave=False):
+                for _ in trange(num_samples, desc="Samples", leave=False):
                     grid, _ = generate_random_grid(n, n, block_prob=prob)
                     free_cells = [(x, y) for y in range(grid.height) for x in range(grid.width) if grid.walkable[y][x]]
                     if len(free_cells) < 2:
@@ -77,7 +79,7 @@ class JPSRandomTests(unittest.TestCase):
             mean_expanded, ci95_expanded = get_mean_and_ci95(expanded_nodes[(algo, prob, n)])
             res.append((algo, prob, n, mean_times, ci95_times, mean_expanded, ci95_expanded))
         df = pd.DataFrame(res, columns=["algo", "prob", "n", "mean_times", "ci95_times", "mean_expanded", "ci95_expanded"])
-        print(df)
+        df.to_csv("jps_vs_astar_random.csv", index=False)
 
 
 if __name__ == "__main__":
