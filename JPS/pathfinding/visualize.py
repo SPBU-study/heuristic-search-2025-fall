@@ -11,24 +11,10 @@ import numpy as np
 from matplotlib.patches import Circle
 
 from .grid import GridMap
-from .jps import normalize_direction
+from .path_utils import expand_path
 from .weighted_grid import WeightedGridMap
 
 GridLike = Union[GridMap, WeightedGridMap]
-
-
-def expand_path(path: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-    if not path:
-        return []
-    expanded: List[Tuple[int, int]] = [path[0]]
-    for a, b in zip(path, path[1:]):
-        dx, dy = normalize_direction(b[0] - a[0], b[1] - a[1])
-        cx, cy = a
-        while (cx, cy) != b:
-            cx += dx
-            cy += dy
-            expanded.append((cx, cy))
-    return expanded
 
 
 def _build_unweighted_image(grid: GridMap) -> np.ndarray:

@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from .grid import GridMap
 from .heuristics import DIAGONAL_DISTANCE, octile_distance
+from .path_utils import reconstruct_path
 
 DIRECTIONS_8: List[Tuple[int, int]] = [
     (1, 0),
@@ -18,17 +19,6 @@ DIRECTIONS_8: List[Tuple[int, int]] = [
     (-1, 1),
     (-1, -1),
 ]
-
-
-def normalize_direction(dx: int, dy: int) -> Tuple[int, int]:
-    def sign(v: int) -> int:
-        if v > 0:
-            return 1
-        if v < 0:
-            return -1
-        return 0
-
-    return sign(dx), sign(dy)
 
 
 def prune_neighbors(
@@ -71,22 +61,6 @@ def prune_neighbors(
 
     return list(dict.fromkeys(pruned))
 
-
-# def _has_forced_neighbor_straight(
-#         grid: GridMap, 
-#         x: int, y: int, 
-#         dx: int, dy: int
-# ) -> bool:
-    
-#     parent = (x - dx, y - dy)
-
-#     dirs = prune_neighbors(grid, (x, y), parent)
-
-#     for ndx, ndy in dirs:
-#         if (ndx, ndy) != (dx, dy):
-#             return True
-
-#     return False
 
 def _has_forced_neighbor_straight(
     grid: GridMap,
@@ -175,20 +149,6 @@ def identify_successors(
 
     return successors
 
-
-
-def _reconstruct_path(
-    parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]], goal: Tuple[int, int]
-) -> List[Tuple[int, int]]:
-    path: List[Tuple[int, int]] = []
-    node: Optional[Tuple[int, int]] = goal
-    while node is not None:
-        path.append(node)
-        node = parent_map.get(node)
-    path.reverse()
-    return path
-
-
 def jump_point_search(
     grid: GridMap, start: Tuple[int, int], goal: Tuple[int, int]
 ) -> Tuple[List[Tuple[int, int]], float, int, float]:
@@ -224,7 +184,7 @@ def jump_point_search(
 
         if node == goal:
             elapsed_time = time.perf_counter() - start_time
-            return _reconstruct_path(parent_map, goal), g_current, expanded, elapsed_time
+            return reconstruct_path(parent_map, goal), g_current, expanded, elapsed_time
 
         prune_parent = dir_parent.get(node)
         successors = identify_successors(
@@ -247,4 +207,3 @@ def jump_point_search(
 
     elapsed_time = time.perf_counter() - start_time
     return [], math.inf, expanded, elapsed_time
-

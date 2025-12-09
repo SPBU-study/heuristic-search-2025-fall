@@ -8,5 +8,6 @@ __all__ = [
     "jps",
     "jpsw",
     "weighted_grid",
+    "path_utils",
     "cli",
 ]
