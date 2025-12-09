@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import heapq
+import time
 from typing import Dict, List, Optional, Set, Tuple
 
 from .grid import GridMap
@@ -22,7 +23,8 @@ def _reconstruct_path(
 
 def astar_search(
     grid: GridMap, start: Tuple[int, int], goal: Tuple[int, int]
-) -> Tuple[List[Tuple[int, int]], float, int]:
+) -> Tuple[List[Tuple[int, int]], float, int, float]:
+    start_time = time.perf_counter()
     open_heap: List[Tuple[float, int, int, int]] = []
     g_scores: Dict[Tuple[int, int], float] = {start: 0.0}
     parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]] = {start: None}
@@ -45,7 +47,8 @@ def astar_search(
         expanded += 1
 
         if node == goal:
-            return _reconstruct_path(parent_map, goal), g_current, expanded
+            elapsed_time = time.perf_counter() - start_time
+            return _reconstruct_path(parent_map, goal), g_current, expanded, elapsed_time
 
         for nx, ny in grid.neighbors8(x, y):
             neighbor = (nx, ny)
@@ -61,4 +64,5 @@ def astar_search(
                     (tentative_g + octile_distance(neighbor, goal), counter, nx, ny),
                 )
 
-    return [], math.inf, expanded
+    elapsed_time = time.perf_counter() - start_time
+    return [], math.inf, expanded, elapsed_time

@@ -118,7 +118,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         path, cost, expanded = jump_point_search(grid, start, goal)
         algo_name = "JPS"
     elif args.algorithm == "astar":
-        path, cost, expanded = astar_search(grid, start, goal)
+        path, cost, expanded, elapsed_time = astar_search(grid, start, goal)
         algo_name = "ASTAR"
     elif args.algorithm == "jpsw":
         path, cost, expanded = jump_point_search_weighted(grid, start, goal)  # type: ignore[arg-type]
@@ -130,6 +130,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"Algorithm: {algo_name}")
     print(f"Path cost: {cost:.6f}")
     print(f"Expanded nodes: {expanded}")
+    if args.algorithm == "astar":
+        print(f"Time elapsed: {elapsed_time:.6f} seconds")
     if optimal_length is not None:
         diff = abs(cost - optimal_length)
         status = "match" if math.isclose(cost, optimal_length, rel_tol=1e-6, abs_tol=1e-6) else "differs"

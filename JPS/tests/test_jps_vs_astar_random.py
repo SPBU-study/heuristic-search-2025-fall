@@ -44,7 +44,7 @@ class JPSRandomTests(unittest.TestCase):
                     for i in range(0, len(samples) - 1, 2):
                         pairs.append((samples[i], samples[i + 1]))
                     for start, goal in pairs[:5]:
-                        path_a, cost_a, _ = astar_search(grid, start, goal)
+                        path_a, cost_a, _, _ = astar_search(grid, start, goal)
                         path_j, cost_j, _ = jump_point_search(grid, start, goal)
                         if not path_a:
                             self.assertFalse(path_j, "JPS found a path where A* did not")
