@@ -16,7 +16,7 @@ def grid_from_ascii(rows: List[str]) -> GridMap:
 class JPSSmallTests(unittest.TestCase):
     def assert_costs_match(self, grid: GridMap, start: Tuple[int, int], goal: Tuple[int, int]) -> None:
         path_a, cost_a, _, _ = astar_search(grid, start, goal)
-        path_j, cost_j, _ = jump_point_search(grid, start, goal)
+        path_j, cost_j, _, _ = jump_point_search(grid, start, goal)
         if not path_a:
             self.assertFalse(path_j, "JPS found a path where A* did not")
             self.assertTrue(math.isinf(cost_j))
@@ -28,7 +28,7 @@ class JPSSmallTests(unittest.TestCase):
         grid = grid_from_ascii(["....."] * 5)
         start, goal = (0, 0), (4, 4)
         path_a, cost_a, _, _ = astar_search(grid, start, goal)
-        path_j, cost_j, _ = jump_point_search(grid, start, goal)
+        path_j, cost_j, _, _ = jump_point_search(grid, start, goal)
         self.assertTrue(path_a and path_j)
         self.assertTrue(math.isclose(cost_a, cost_j, rel_tol=1e-6, abs_tol=1e-6))
 
@@ -41,7 +41,7 @@ class JPSSmallTests(unittest.TestCase):
         grid = grid_from_ascii(rows)
         start, goal = (0, 1), (2, 1)
         path_a, cost_a, _, _ = astar_search(grid, start, goal)
-        path_j, cost_j, _ = jump_point_search(grid, start, goal)
+        path_j, cost_j, _, _ = jump_point_search(grid, start, goal)
         self.assertTrue(path_a)
         self.assertTrue(path_j, "Regression: JPS previously failed here")
         self.assertTrue(math.isclose(cost_a, 4.0, abs_tol=1e-6))
@@ -58,7 +58,7 @@ class JPSSmallTests(unittest.TestCase):
         grid = grid_from_ascii(rows)
         start, goal = (1, 1), (3, 3)
         path_a, cost_a, _, _ = astar_search(grid, start, goal)
-        path_j, cost_j, _ = jump_point_search(grid, start, goal)
+        path_j, cost_j, _, _ = jump_point_search(grid, start, goal)
         self.assertFalse(path_a)
         self.assertFalse(path_j)
         self.assertTrue(math.isinf(cost_a))
