@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import random
 import unittest
+from pathlib import Path
 from collections import defaultdict
 from typing import List, Tuple
 
@@ -79,7 +80,9 @@ class JPSRandomTests(unittest.TestCase):
             mean_expanded, ci95_expanded = get_mean_and_ci95(expanded_nodes[(algo, prob, n)])
             res.append((algo, prob, n, mean_times, ci95_times, mean_expanded, ci95_expanded))
         df = pd.DataFrame(res, columns=["algo", "prob", "n", "mean_times", "ci95_times", "mean_expanded", "ci95_expanded"])
-        df.to_csv("jps_vs_astar_random.csv", index=False)
+        SAVE_DIR = Path("../artifacts/JPS").resolve()
+        SAVE_DIR.mkdir(parents=True, exist_ok=True)
+        df.to_csv(SAVE_DIR / "jps_vs_astar_random.csv", index=False)
 
 
 if __name__ == "__main__":
