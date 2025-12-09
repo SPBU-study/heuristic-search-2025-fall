@@ -71,22 +71,45 @@ def prune_neighbors(
     return list(dict.fromkeys(pruned))
 
 
-def _has_forced_neighbor_straight(
-        grid: GridMap, 
-        x: int, y: int, 
-        dx: int, dy: int
-) -> bool:
+# def _has_forced_neighbor_straight(
+#         grid: GridMap, 
+#         x: int, y: int, 
+#         dx: int, dy: int
+# ) -> bool:
     
-    parent = (x - dx, y - dy)
+#     parent = (x - dx, y - dy)
 
-    dirs = prune_neighbors(grid, (x, y), parent)
+#     dirs = prune_neighbors(grid, (x, y), parent)
 
-    for ndx, ndy in dirs:
-        if (ndx, ndy) != (dx, dy):
-            return True
+#     for ndx, ndy in dirs:
+#         if (ndx, ndy) != (dx, dy):
+#             return True
 
-    return False
+#     return False
 
+def _has_forced_neighbor_straight(
+    grid: GridMap,
+    x: int,
+    y: int,
+    dx: int,
+    dy: int,
+) -> bool:
+
+    px, py = x - dx, y - dy
+
+    if dx != 0 and dy == 0:
+        for ty in (-1, 1):
+            if not grid.valid_step(px, py, dx, ty):
+                if grid.valid_step(x, y, 0, ty) or grid.valid_step(x, y, dx, ty):
+                    return True
+        return False
+
+    if dy != 0 and dx == 0:
+        for tx in (-1, 1):
+            if not grid.valid_step(px, py, tx, dy):
+                if grid.valid_step(x, y, tx, 0) or grid.valid_step(x, y, tx, dy):
+                    return True
+        return False
 
 def jump(
     grid: GridMap, 

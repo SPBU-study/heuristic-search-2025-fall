@@ -4,6 +4,9 @@ __all__ = [
     "grid",
     "heuristics",
     "astar",
+    "astarw",
     "jps",
+    "jpsw",
+    "weighted_grid",
     "cli",
 ]

@@ -6,22 +6,12 @@ import sys
 from typing import List, Optional, Tuple
 
 from .astar import astar_search
+from .astarw import astarw_search
 from .grid import GridMap, ScenarioProblem, load_scenarios
-from .jps import jump_point_search, normalize_direction
-
-
-def _expand_path(path: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-    if not path:
-        return []
-    expanded: List[Tuple[int, int]] = [path[0]]
-    for a, b in zip(path, path[1:]):
-        dx, dy = normalize_direction(b[0] - a[0], b[1] - a[1])
-        cx, cy = a
-        while (cx, cy) != b:
-            cx += dx
-            cy += dy
-            expanded.append((cx, cy))
-    return expanded
+from .jps import jump_point_search
+from .jpsw import jump_point_search_weighted
+from .visualize import expand_path, render_grid_path
+from .weighted_grid import WeightedGridMap
 
 
 def _render_path(grid: GridMap, path: List[Tuple[int, int]], start: Tuple[int, int], goal: Tuple[int, int]) -> str:
@@ -54,7 +44,7 @@ def _run_demo() -> int:
     print("Demo grid 10x10")
     print(f"Path cost: {cost:.3f}, expanded nodes: {expanded}")
     if path:
-        full_path = _expand_path(path)
+        full_path = expand_path(path)
         print(_render_path(grid, full_path, start, goal))
         return 0
     print("No path found.")
@@ -70,8 +60,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--start-y", type=int, help="Start Y coordinate (0-based)")
     parser.add_argument("--goal-x", type=int, help="Goal X coordinate (0-based)")
     parser.add_argument("--goal-y", type=int, help="Goal Y coordinate (0-based)")
-    parser.add_argument("--algorithm", choices=["jps", "astar"], default="jps", help="Search algorithm")
+    parser.add_argument("--algorithm", choices=["jps", "astar", "jpsw", "astarw"], default="jps", help="Search algorithm")
     parser.add_argument("--show-path", action="store_true", help="Render map with path overlay")
+    parser.add_argument("--visualize", action="store_true", help="Save a PNG visualization of the map and path.",)
+    parser.add_argument( "--figure-path", dest="figure_path", help="Path to PNG file for visualization. If omitted but --visualize is set, a file will be saved in ./assets.",)
+    parser.add_argument("--terrain-weights", dest="terrain_weights_path", help="Optional JSON mapping of terrain symbols to costs for weighted algorithms.")
     # parser.add_argument("--max-recursion", type=int, default=10_000, help="Recursion limit for jump search")
 
     args = parser.parse_args(argv)
@@ -82,8 +75,9 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     start: Tuple[int, int]
     goal: Tuple[int, int]
-    grid: GridMap
+    grid: GridMap | WeightedGridMap
     optimal_length: Optional[float] = None
+    use_weighted = args.algorithm in {"jpsw", "astarw"}
 
     if args.scenario_path:
         problems = load_scenarios(args.scenario_path)
@@ -94,7 +88,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"Scenario index {args.index} out of range (0..{len(problems)-1}).", file=sys.stderr)
             return 1
         prob: ScenarioProblem = problems[args.index]
-        grid = GridMap.from_movingai_map(prob.map_path)
+        if use_weighted:
+            grid = WeightedGridMap.from_movingai_map(prob.map_path, terrain_weights_path=args.terrain_weights_path)
+        else:
+            grid = GridMap.from_movingai_map(prob.map_path)
         start = (prob.start_x, prob.start_y)
         goal = (prob.goal_x, prob.goal_y)
         optimal_length = prob.optimal_length
@@ -106,7 +103,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         if any(v is None for v in needed):
             print("Start and goal coordinates are required without a scenario.", file=sys.stderr)
             return 1
-        grid = GridMap.from_movingai_map(args.map_path)
+        if use_weighted:
+            grid = WeightedGridMap.from_movingai_map(args.map_path, terrain_weights_path=args.terrain_weights_path)
+        else:
+            grid = GridMap.from_movingai_map(args.map_path)
         start = (int(args.start_x), int(args.start_y))
         goal = (int(args.goal_x), int(args.goal_y))
 
@@ -117,9 +117,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.algorithm == "jps":
         path, cost, expanded = jump_point_search(grid, start, goal)
         algo_name = "JPS"
-    else:
+    elif args.algorithm == "astar":
         path, cost, expanded = astar_search(grid, start, goal)
         algo_name = "ASTAR"
+    elif args.algorithm == "jpsw":
+        path, cost, expanded = jump_point_search_weighted(grid, start, goal)  # type: ignore[arg-type]
+        algo_name = "JPSW"
+    else:
+        path, cost, expanded = astarw_search(grid, start, goal)  # type: ignore[arg-type]
+        algo_name = "ASTARW"
 
     print(f"Algorithm: {algo_name}")
     print(f"Path cost: {cost:.6f}")
@@ -130,9 +136,28 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"Scenario optimal: {optimal_length:.6f} ({status}, error {diff:.6f})")
 
     if args.show_path and path:
-        print(_render_path(grid, _expand_path(path), start, goal))
+        print(_render_path(grid, expand_path(path), start, goal))
     elif args.show_path:
         print("No path found to display.")
+
+    path_for_plot: List[Tuple[int, int]] = expand_path(path) if path else []
+    jump_points: Optional[List[Tuple[int, int]]] = path if (path and algo_name in {"JPS", "JPSW"}) else None
+
+    if args.visualize:
+        if not path_for_plot:
+            print("No path found to visualize.")
+        else:
+            saved = render_grid_path(
+                grid=grid,
+                path=path_for_plot,
+                jump_points=jump_points,
+                start=start,
+                goal=goal,
+                output_path=args.figure_path,
+                title=f"{algo_name} path cost={cost:.3f}",
+                show=False,
+            )
+            print(f"Saved visualization to: {saved}")
 
     return 0 if path else 2
 

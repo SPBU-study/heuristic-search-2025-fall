@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 from typing import Tuple
 
+from .weighted_grid import WeightedGridMap
+
 DIAGONAL_DISTANCE: float = math.sqrt(2.0)
 
 
@@ -16,3 +18,8 @@ def octile_distance(a: Tuple[int, int], b: Tuple[int, int]) -> float:
     D = 1.0
     D2 = DIAGONAL_DISTANCE
     return D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
+
+
+def weighted_octile_distance(a: Tuple[int, int], b: Tuple[int, int], grid: WeightedGridMap) -> float:
+    base = octile_distance(a, b)
+    return base * grid.min_cell_cost()
