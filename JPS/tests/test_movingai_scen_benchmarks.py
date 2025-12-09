@@ -59,8 +59,8 @@ class MovingAIScenBenchmarkTests(unittest.TestCase):
                     start = (prob.start_x, prob.start_y)
                     goal = (prob.goal_x, prob.goal_y)
 
-                    path_a, cost_a, _ = astar_search(grid, start, goal)
-                    path_j, cost_j, _ = jump_point_search(grid, start, goal)
+                    path_a, cost_a, _, _ = astar_search(grid, start, goal)
+                    path_j, cost_j, _, _ = jump_point_search(grid, start, goal)
 
                     if not path_a:
                         self.assertFalse(
