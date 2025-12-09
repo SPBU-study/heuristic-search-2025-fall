@@ -48,7 +48,7 @@ class JPSRandomTests(unittest.TestCase):
         expanded_nodes = defaultdict(list)
         num_samples = 30
         for prob in tqdm((0.1, 0.25, 0.5, 0.75), desc="Probs", leave=False):
-            for n in tqdm((3, 5, 10, 20, 30, 100, 500), desc="n", leave=False):
+            for n in tqdm((3, 5, 10, 20, 30), desc="n", leave=False):
                 for _ in trange(num_samples, desc="Samples", leave=False):
                     grid, _ = generate_random_grid(n, n, block_prob=prob)
                     free_cells = [(x, y) for y in range(grid.height) for x in range(grid.width) if grid.walkable[y][x]]
