@@ -40,9 +40,9 @@ def _run_demo() -> int:
     ]
     grid = GridMap.from_ascii(demo_rows)
     start, goal = (0, 0), (9, 9)
-    path, cost, expanded = jump_point_search(grid, start, goal)
+    path, cost, expanded, elapsed_time = jump_point_search(grid, start, goal)
     print("Demo grid 10x10")
-    print(f"Path cost: {cost:.3f}, expanded nodes: {expanded}")
+    print(f"Path cost: {cost:.3f}, expanded nodes: {expanded}, time elapsed: {elapsed_time:.6f} seconds")
     if path:
         full_path = expand_path(path)
         print(_render_path(grid, full_path, start, goal))
@@ -115,10 +115,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1
 
     if args.algorithm == "jps":
-        path, cost, expanded = jump_point_search(grid, start, goal)
+        path, cost, expanded, elapsed_time = jump_point_search(grid, start, goal)
         algo_name = "JPS"
     elif args.algorithm == "astar":
-        path, cost, expanded = astar_search(grid, start, goal)
+        path, cost, expanded, elapsed_time = astar_search(grid, start, goal)
         algo_name = "ASTAR"
     elif args.algorithm == "jpsw":
         path, cost, expanded = jump_point_search_weighted(grid, start, goal)  # type: ignore[arg-type]
@@ -130,6 +130,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"Algorithm: {algo_name}")
     print(f"Path cost: {cost:.6f}")
     print(f"Expanded nodes: {expanded}")
+    if args.algorithm in {"astar", "jps"}:
+        print(f"Time elapsed: {elapsed_time:.6f} seconds")
     if optimal_length is not None:
         diff = abs(cost - optimal_length)
         status = "match" if math.isclose(cost, optimal_length, rel_tol=1e-6, abs_tol=1e-6) else "differs"
