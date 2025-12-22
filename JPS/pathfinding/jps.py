@@ -183,8 +183,9 @@ def jump_point_search(
         expanded += 1
 
         if node == goal:
+            path = reconstruct_path(parent_map, goal)
             elapsed_time = time.perf_counter() - start_time
-            return reconstruct_path(parent_map, goal), g_current, expanded, elapsed_time
+            return path, g_current, expanded, elapsed_time
 
         prune_parent = dir_parent.get(node)
         successors = identify_successors(

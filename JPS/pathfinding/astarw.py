@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import heapq
 import math
+import time
 from typing import Dict, List, Optional, Set, Tuple
 
 from .heuristics import weighted_octile_distance
@@ -11,7 +12,8 @@ from .weighted_grid import WeightedGridMap
 
 def astarw_search(
     grid: WeightedGridMap, start: Tuple[int, int], goal: Tuple[int, int]
-) -> Tuple[List[Tuple[int, int]], float, int]:
+) -> Tuple[List[Tuple[int, int]], float, int, float]:
+    start_time = time.perf_counter()
     open_heap: List[Tuple[float, int, int, int]] = []
     g_scores: Dict[Tuple[int, int], float] = {start: 0.0}
     parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]] = {start: None}
@@ -38,7 +40,9 @@ def astarw_search(
         expanded += 1
 
         if node == goal:
-            return reconstruct_path(parent_map, goal), g_current, expanded
+            path = reconstruct_path(parent_map, goal)
+            elapsed_time = time.perf_counter() - start_time
+            return path, g_current, expanded, elapsed_time
 
         for nx, ny in grid.neighbors8(x, y):
             neighbor = (nx, ny)
@@ -54,4 +58,5 @@ def astarw_search(
                     (tentative_g + weighted_octile_distance(neighbor, goal, grid), counter, nx, ny),
                 )
 
-    return [], math.inf, expanded
+    elapsed_time = time.perf_counter() - start_time
+    return [], math.inf, expanded, elapsed_time

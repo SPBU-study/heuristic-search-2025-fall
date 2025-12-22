@@ -36,8 +36,9 @@ def astar_search(
         expanded += 1
 
         if node == goal:
+            path = reconstruct_path(parent_map, goal)
             elapsed_time = time.perf_counter() - start_time
-            return reconstruct_path(parent_map, goal), g_current, expanded, elapsed_time
+            return path, g_current, expanded, elapsed_time
 
         for nx, ny in grid.neighbors8(x, y):
             neighbor = (nx, ny)

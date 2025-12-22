@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import heapq
 import math
+import time
 from typing import Dict, List, Optional, Set, Tuple
 
 from .heuristics import DIAGONAL_DISTANCE, weighted_octile_distance
@@ -196,7 +197,8 @@ def identify_successors(
     return successors
 def jump_point_search_weighted(
     grid: WeightedGridMap, start: Tuple[int, int], goal: Tuple[int, int]
-) -> Tuple[List[Tuple[int, int]], float, int]:
+) -> Tuple[List[Tuple[int, int]], float, int, float]:
+    start_time = time.perf_counter()
     open_heap: List[Tuple[float, int, int, int]] = []
     g_scores: Dict[Tuple[int, int], float] = {start: 0.0}
     parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]] = {start: None}
@@ -224,7 +226,9 @@ def jump_point_search_weighted(
         expanded += 1
 
         if node == goal:
-            return reconstruct_path(parent_map, goal), g_current, expanded
+            path = reconstruct_path(parent_map, goal)
+            elapsed_time = time.perf_counter() - start_time
+            return path, g_current, expanded, elapsed_time
 
         prune_parent = dir_parent.get(node)
         successors = identify_successors(
@@ -245,4 +249,5 @@ def jump_point_search_weighted(
             counter += 1
             heapq.heappush(open_heap, (g_val + h_val, counter, succ[0], succ[1]))
 
-    return [], math.inf, expanded
+    elapsed_time = time.perf_counter() - start_time
+    return [], math.inf, expanded, elapsed_time
