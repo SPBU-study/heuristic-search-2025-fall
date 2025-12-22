@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import heapq
 import math
-import time
 from typing import Dict, List, Optional, Set, Tuple
 
 from .heuristics import DIAGONAL_DISTANCE, weighted_octile_distance
@@ -113,18 +112,16 @@ def prune_neighbors_weighted(
 
 
 def _has_multi_terrain_neighbourhood(grid: WeightedGridMap, x: int, y: int) -> bool:
-    chars = grid.chars
-    seen: set[str] = set()
-
+    seen: set[float] = set()
     for ny in range(y - 1, y + 2):
         for nx in range(x - 1, x + 2):
             if not grid.in_bounds(nx, ny):
                 continue
-            seen.add(chars[ny][nx])
+            seen.add(grid.weights[ny][nx])
             if len(seen) > 1:
                 return True
-
     return False
+
 
 
 def jump(
@@ -173,7 +170,7 @@ def identify_successors(
     goal: Tuple[int, int],
     g_scores: Dict[Tuple[int, int], float],
     parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]],
-    dir_parent: Dict[Tuple[int, int], Optional[Tuple[int, int]]],
+    prev_cell: Dict[Tuple[int, int], Optional[Tuple[int, int]]],
 ) -> List[Tuple[int, int]]:
     successors: List[Tuple[int, int]] = []
     x, y = current
@@ -191,18 +188,17 @@ def identify_successors(
         if tentative_g + 1e-9 < g_scores.get((jx, jy), math.inf):
             g_scores[(jx, jy)] = tentative_g
             parent_map[(jx, jy)] = current
-            dir_parent[(jx, jy)] = (jx - dx, jy - dy)
+            prev_cell[(jx, jy)] = (jx - dx, jy - dy)
             successors.append((jx, jy))
 
     return successors
 def jump_point_search_weighted(
     grid: WeightedGridMap, start: Tuple[int, int], goal: Tuple[int, int]
-) -> Tuple[List[Tuple[int, int]], float, int, float]:
-    start_time = time.perf_counter()
+) -> Tuple[List[Tuple[int, int]], float, int]:
     open_heap: List[Tuple[float, int, int, int]] = []
     g_scores: Dict[Tuple[int, int], float] = {start: 0.0}
     parent_map: Dict[Tuple[int, int], Optional[Tuple[int, int]]] = {start: None}
-    dir_parent: Dict[Tuple[int, int], Optional[Tuple[int, int]]] = {start: None}
+    prev_cell: Dict[Tuple[int, int], Optional[Tuple[int, int]]] = {start: None}
     closed: Set[Tuple[int, int]] = set()
     counter = 0
     expanded = 0
@@ -226,11 +222,9 @@ def jump_point_search_weighted(
         expanded += 1
 
         if node == goal:
-            path = reconstruct_path(parent_map, goal)
-            elapsed_time = time.perf_counter() - start_time
-            return path, g_current, expanded, elapsed_time
+            return reconstruct_path(parent_map, goal), g_current, expanded
 
-        prune_parent = dir_parent.get(node)
+        prune_parent = prev_cell.get(node)
         successors = identify_successors(
             grid,
             node,
@@ -238,7 +232,7 @@ def jump_point_search_weighted(
             goal,
             g_scores,
             parent_map,
-            dir_parent,
+            prev_cell,
         )
 
         for succ in successors:
@@ -249,5 +243,4 @@ def jump_point_search_weighted(
             counter += 1
             heapq.heappush(open_heap, (g_val + h_val, counter, succ[0], succ[1]))
 
-    elapsed_time = time.perf_counter() - start_time
-    return [], math.inf, expanded, elapsed_time
+    return [], math.inf, expanded

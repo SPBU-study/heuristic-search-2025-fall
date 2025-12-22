@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Tuple
 
+import random
 
 def _deterministic_weight(ch: str) -> float:
     return 1.0 + (ord(ch) % 9)
@@ -197,3 +198,45 @@ class WeightedGridMap:
         wu = self.weights[u[1]][u[0]]
         wv = self.weights[v[1]][v[0]]
         return math.sqrt(2.0) * (wx + wu + wv + wy) / 4.0
+    
+
+    def random_crop(
+        self,
+        tile_size: int = 512,
+        *,
+        rng: Optional[random.Random] = None,
+        return_offset: bool = False,
+    ):
+        if tile_size <= 0:
+            raise ValueError("tile_size must be positive")
+        if tile_size > self.width or tile_size > self.height:
+            raise ValueError(
+                f"tile_size={tile_size} is larger than map ({self.width}x{self.height})"
+            )
+
+        rr = rng or random
+        max_x0 = self.width - tile_size
+        max_y0 = self.height - tile_size
+
+        x0 = rr.randint(0, max_x0)
+        y0 = rr.randint(0, max_y0)
+
+        walkable = [row[x0 : x0 + tile_size] for row in self.walkable[y0 : y0 + tile_size]]
+        weights = [row[x0 : x0 + tile_size] for row in self.weights[y0 : y0 + tile_size]]
+
+        chars = None
+        if self.chars is not None:
+            chars = [row[x0 : x0 + tile_size] for row in self.chars[y0 : y0 + tile_size]]
+
+        cropped = WeightedGridMap(
+            width=tile_size,
+            height=tile_size,
+            walkable=walkable,
+            weights=weights,
+            chars=chars,
+        )
+
+        if return_offset:
+            return cropped, (x0, y0)
+        return cropped
+
