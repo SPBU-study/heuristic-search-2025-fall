@@ -5,10 +5,12 @@ import random
 import unittest
 from pathlib import Path
 from typing import List, Tuple
-
+from collections import defaultdict
 from pathfinding.astarw import astarw_search
 from pathfinding.jpsw import jump_point_search_weighted
 from pathfinding.weighted_grid import WeightedGridMap
+from tqdm import tqdm, trange
+from benchmarks.helpers import run_search, save_results
 
 
 def _list_weighted_maps(dir_path: Path) -> List[Path]:
@@ -56,6 +58,9 @@ class TestJPSWvsAStarWOnWeightedMaps(unittest.TestCase):
         COST_REL_TOL = 1e-6
         COST_ABS_TOL = 1e-6
 
+        elapsed_times = defaultdict(list)
+        expanded_nodes = defaultdict(list)
+
         rng = random.Random(SEED)
 
         repo_root = Path(__file__).resolve().parents[1]
@@ -67,26 +72,27 @@ class TestJPSWvsAStarWOnWeightedMaps(unittest.TestCase):
 
         map_paths = map_paths[:MAX_MAPS]
 
-        for map_path in map_paths:
+        for map_path in tqdm(map_paths, desc="Maps", leave=False, total=len(map_paths)):
             grid = WeightedGridMap.from_movingai_map(str(map_path), terrain_weights_path=None)
 
             if grid.width < CROP_SIZE or grid.height < CROP_SIZE:
                 continue
 
-            for crop_idx in range(N_CROPS_PER_MAP):
+            for crop_idx in trange(N_CROPS_PER_MAP, desc="Crops", leave=False, total=N_CROPS_PER_MAP):
                 cropped, (x0, y0) = _crop_grid(grid, CROP_SIZE, rng)
                 pairs = _pick_random_pairs(cropped, N_PAIRS_PER_CROP, rng)
 
                 if not pairs:
                     continue
 
-                for (start, goal) in pairs:
-                    path_a, cost_a, exp_a = astarw_search(cropped, start, goal)
-                    path_j, cost_j, exp_j = jump_point_search_weighted(cropped, start, goal)
+                for (start, goal) in tqdm(pairs, desc="Pairs", leave=False, total=len(pairs)):
+                    scen_dir = map_path.parent.stem
+                    path_a, cost_a = run_search(astarw_search, "astarw", cropped, start, goal, elapsed_times, expanded_nodes, n=CROP_SIZE, scen_dir=scen_dir)
+                    path_j, cost_j = run_search(jump_point_search_weighted, "jpsw", cropped, start, goal, elapsed_times, expanded_nodes, n=CROP_SIZE, scen_dir=scen_dir)
 
                     ctx = (
                         f"map={map_path.name}, crop={crop_idx}, offset=({x0},{y0}), "
-                        f"start={start}, goal={goal}, expA={exp_a}, expJ={exp_j}"
+                        f"start={start}, goal={goal}"
                     )
 
                     if not path_a:
@@ -98,6 +104,7 @@ class TestJPSWvsAStarWOnWeightedMaps(unittest.TestCase):
                             math.isclose(cost_a, cost_j, rel_tol=COST_REL_TOL, abs_tol=COST_ABS_TOL),
                             "Costs differ. " + ctx + f", costA={cost_a}, costJ={cost_j}",
                         )
+        save_results(elapsed_times, expanded_nodes, "jpsw_vs_astarw_on_movingai")
 
 
 if __name__ == "__main__":
