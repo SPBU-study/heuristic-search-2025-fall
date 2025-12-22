@@ -20,9 +20,10 @@ def plot_jps_vs_astar_random(df: pd.DataFrame, metrics: List[str], title: str) -
 
 @click.command()
 @click.option("--input", "-i", type=click.Path(exists=True), required=True)
-def main(input):
+@click.option("--label", "-l", type=str, required=True, multiple=True)
+def main(input, label):
     df = pd.read_csv(input)
-    df["label"] = df.apply(lambda row: f"prob={row['prob']} | n={row['n']}", axis=1)
+    df["label"] = df.apply(lambda row: " | ".join([f"{k}={row[k]}" for k in label]), axis=1)
     title = Path(input).stem
     plot_jps_vs_astar_random(df, ["expanded", "times"], title)
 
