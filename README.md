@@ -6,8 +6,9 @@
 - Все статьи находятся в папке [papers](papers/)
 
 ## [Презентация КТ №1](https://docs.google.com/presentation/d/12X5laVY5Llpda4JvgQLUZ1vzJgyGd83-QKXvEm5NzWQ/edit?slide=id.g3a19b4d6b3b_1_96#slide=id.g3a19b4d6b3b_1_96)
+Презентация КТ №3 в папке [artifacts](artifacts/)
 
-## Инструкция по установке
+## Инструкция по установке 
 
 ```
 git clone https://github.com/SPBU-study/heuristic-search-2025-fall.git
