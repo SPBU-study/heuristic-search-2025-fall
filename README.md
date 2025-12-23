@@ -54,7 +54,7 @@ Saved visualization to: /Users/nvdenisov/study/2025-fall/HSearch/project/heurist
 ```
 
 Веса у соотвествующих цветов
-- синий — 2,
+- синий — 2
 - зеленый — 1
 - красный — 30
 
