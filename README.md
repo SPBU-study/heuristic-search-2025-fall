@@ -11,6 +11,8 @@
 
 ```
 git clone https://github.com/SPBU-study/heuristic-search-2025-fall.git
-cd heuristic-search-2025-fall/JPS
+cd heuristic-search-2025-fall
+pip install .
+cd JPS
 python -m pathfinding.cli --map maps/weighted-map/Map12.map --start-x 47 --start-y 295 --goal-x 1047 --goal-y 1443 --algorithm astarw --visualize
 ```
