@@ -1,3 +1,10 @@
 __pycache__/
-JPS/maps/
+JPS/maps/maze-map/
+JPS/maps/maze-scen/
+JPS/maps/random-map/
+JPS/maps/random-scen/
+JPS/maps/room-map/
+JPS/maps/room-scen/
+JPS/maps/weighted-map/
+JPS/maps/weighted-scen/
 .DS_Store
